@@ -44,6 +44,8 @@ func Init(version string, alerter *alerter.Alerter,
 	}
 	assetRepository := repository.NewAssetRepository(assetClient, provider.GetConfig(), repositoryCache)
 
+	storageRepository := repository.NewStorageRepository(repositoryCache)
+
 	providerLibrary.AddProvider(terraform.GOOGLE, provider)
 	deserializer := resource.NewDeserializer(factory)
 
@@ -56,6 +58,7 @@ func Init(version string, alerter *alerter.Alerter,
 	remoteLibrary.AddEnumerator(NewGoogleComputeRouterEnumerator(assetRepository, factory))
 
 	remoteLibrary.AddEnumerator(NewGoogleComputeInstanceEnumerator(assetRepository, factory))
+	remoteLibrary.AddEnumerator(NewGoogleStorageBucketIamBindingEnumerator(assetRepository, storageRepository, factory))
 
 	err = resourceSchemaRepository.Init(terraform.GOOGLE, version, provider.Schema())
 	if err != nil {
