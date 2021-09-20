@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/apigateway/apigatewayiface"
@@ -9,6 +11,7 @@ import (
 
 type ApiGatewayRepository interface {
 	ListAllRestApis() ([]*apigateway.RestApi, error)
+	ListAllRestApiResources([]*apigateway.RestApi) ([]*RestApiResource, error)
 }
 
 type apigatewayRepository struct {
@@ -42,4 +45,43 @@ func (r *apigatewayRepository) ListAllRestApis() ([]*apigateway.RestApi, error) 
 
 	r.cache.Put("apigatewayListAllRestApis", restApis)
 	return restApis, nil
+}
+
+func (r *apigatewayRepository) ListAllRestApiResources(apis []*apigateway.RestApi) ([]*RestApiResource, error) {
+	var apiResources []*RestApiResource
+	for _, api := range apis {
+		a := *api
+		cacheKey := fmt.Sprintf("apigatewayListAllRestApiResources_api_%s", *a.Id)
+		if v := r.cache.Get(cacheKey); v != nil {
+			apiResources = append(apiResources, v.([]*RestApiResource)...)
+			continue
+		}
+
+		var resources []*RestApiResource
+		input := &apigateway.GetResourcesInput{
+			RestApiId: a.Id,
+		}
+		err := r.client.GetResourcesPages(input, func(res *apigateway.GetResourcesOutput, lastPage bool) bool {
+			for _, item := range res.Items {
+				i := *item
+				resources = append(resources, &RestApiResource{
+					Resource:  i,
+					RestApiId: a.Id,
+				})
+			}
+			return !lastPage
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		r.cache.Put(cacheKey, resources)
+		apiResources = append(apiResources, resources...)
+	}
+	return apiResources, nil
+}
+
+type RestApiResource struct {
+	apigateway.Resource
+	RestApiId *string
 }

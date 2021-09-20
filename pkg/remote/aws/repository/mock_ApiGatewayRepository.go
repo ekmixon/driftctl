@@ -12,6 +12,29 @@ type MockApiGatewayRepository struct {
 	mock.Mock
 }
 
+// ListAllRestApiResources provides a mock function with given fields: _a0
+func (_m *MockApiGatewayRepository) ListAllRestApiResources(_a0 []*apigateway.RestApi) ([]*RestApiResource, error) {
+	ret := _m.Called(_a0)
+
+	var r0 []*RestApiResource
+	if rf, ok := ret.Get(0).(func([]*apigateway.RestApi) []*RestApiResource); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*RestApiResource)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func([]*apigateway.RestApi) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListAllRestApis provides a mock function with given fields:
 func (_m *MockApiGatewayRepository) ListAllRestApis() ([]*apigateway.RestApi, error) {
 	ret := _m.Called()
