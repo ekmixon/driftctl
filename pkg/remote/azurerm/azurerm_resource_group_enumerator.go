@@ -1,0 +1,45 @@
+package azurerm
+
+import (
+	"github.com/cloudskiff/driftctl/pkg/remote/azurerm/repository"
+	remoteerror "github.com/cloudskiff/driftctl/pkg/remote/error"
+	"github.com/cloudskiff/driftctl/pkg/resource"
+	"github.com/cloudskiff/driftctl/pkg/resource/azurerm"
+)
+
+type AzurermResourceGroupEnumerator struct {
+	repository repository.ArmResourcesRespository
+	factory    resource.ResourceFactory
+}
+
+func NewAzurermResourceGroupEnumerator(repo repository.ArmResourcesRespository, factory resource.ResourceFactory) *AzurermResourceGroupEnumerator {
+	return &AzurermResourceGroupEnumerator{
+		repository: repo,
+		factory:    factory,
+	}
+}
+
+func (e *AzurermResourceGroupEnumerator) SupportedType() resource.ResourceType {
+	return azurerm.AzureResourceGroupResourceType
+}
+
+func (e *AzurermResourceGroupEnumerator) Enumerate() ([]*resource.Resource, error) {
+	groups, err := e.repository.ListAllResourceGroups()
+	if err != nil {
+		return nil, remoteerror.NewResourceListingError(err, string(e.SupportedType()))
+	}
+
+	results := make([]*resource.Resource, 0)
+	for _, group := range groups {
+		results = append(
+			results,
+			e.factory.CreateAbstractResource(
+				string(e.SupportedType()),
+				*group.Name,
+				map[string]interface{}{},
+			),
+		)
+	}
+
+	return results, err
+}

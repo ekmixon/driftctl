@@ -37,7 +37,7 @@ func Init(
 	}
 
 	providerConfig := provider.GetConfig()
-	cred, err := azidentity.NewDefaultAzureCredential(&azidentity.DefaultAzureCredentialOptions{})
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
 	if err != nil {
 		return err
 	}
@@ -46,11 +46,13 @@ func Init(
 	c := cache.New(100)
 
 	storageAccountRepo := repository.NewStorageRepository(con, providerConfig, c)
+	armResourcesRepo := repository.NewArmResourcesRepository(con, providerConfig, c)
 
 	providerLibrary.AddProvider(terraform.AZURE, provider)
 
 	remoteLibrary.AddEnumerator(NewAzurermStorageAccountEnumerator(storageAccountRepo, factory))
 	remoteLibrary.AddEnumerator(NewAzurermStorageContainerEnumerator(storageAccountRepo, factory))
+	remoteLibrary.AddEnumerator(NewAzurermResourceGroupEnumerator(armResourcesRepo, factory))
 
 	err = resourceSchemaRepository.Init(terraform.AZURE, version, provider.Schema())
 	if err != nil {
