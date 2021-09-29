@@ -72,6 +72,7 @@ var supportedTypes = map[string]struct{}{
 	"google_compute_instance":           {},
 	"google_storage_bucket_iam_binding": {},
 	"google_storage_bucket_iam_member":  {},
+	"google_storage_bucket_iam_policy":  {},
 
 	"azurerm_storage_account":   {},
 	"azurerm_storage_container": {},

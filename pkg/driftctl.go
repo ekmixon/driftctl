@@ -108,6 +108,7 @@ func (d DriftCTL) Run() (*analyser.Analysis, error) {
 		middlewares.NewEipAssociationExpander(d.resourceFactory),
 		middlewares.NewGoogleLegacyBucketIAMBindings(),
 		middlewares.NewGoogleStorageBucketIAMMemberTransformer(d.resourceFactory),
+		middlewares.NewGoogleStorageBucketIAMPolicyTransformer(d.resourceFactory),
 	)
 
 	if !d.opts.StrictMode {
