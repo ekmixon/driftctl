@@ -35,8 +35,10 @@ func (e *AzurermResourceGroupEnumerator) Enumerate() ([]*resource.Resource, erro
 			results,
 			e.factory.CreateAbstractResource(
 				string(e.SupportedType()),
-				*group.Name,
-				map[string]interface{}{},
+				*group.ID,
+				map[string]interface{}{
+					"name": *group.Name,
+				},
 			),
 		)
 	}

@@ -13,14 +13,32 @@ type ArmResourcesRespository interface {
 	ListAllResourceGroups() ([]*armresources.ResourceGroup, error)
 }
 
-type armResourcesRepository struct {
+type armResourcesListPager interface {
+	Err() error
+	NextPage(ctx context.Context) bool
+	PageResponse() armresources.ResourceGroupsListResponse
+}
+
+type armResourcesClient interface {
+	List(options *armresources.ResourceGroupsListOptions) armResourcesListPager
+}
+
+type armResourcesClientImpl struct {
 	client *armresources.ResourceGroupsClient
+}
+
+func (c armResourcesClientImpl) List(options *armresources.ResourceGroupsListOptions) armResourcesListPager {
+	return c.client.List(options)
+}
+
+type armResourcesRepository struct {
+	client armResourcesClient
 	cache  cache.Cache
 }
 
 func NewArmResourcesRepository(con *arm.Connection, config common.AzureProviderConfig, cache cache.Cache) *armResourcesRepository {
 	return &armResourcesRepository{
-		armresources.NewResourceGroupsClient(con, config.SubscriptionID),
+		armResourcesClientImpl{armresources.NewResourceGroupsClient(con, config.SubscriptionID)},
 		cache,
 	}
 }
